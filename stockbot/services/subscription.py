@@ -26,7 +26,7 @@ def check_usage_quota_for_query(query, chat_id) -> bool:
     if row and row[0] == 'free':
         if not consume_free_credit(chat_id):
             query.answer(
-                "⚠️ You have reached the limit of 10 advanced feature requests today. Use /upgrade to upgrade.",
+                "🚫 انتهى حدك المجاني اليوم من الميزات المتقدمة.\n🎁 جرّب الاشتراك لطلبات غير محدودة باستخدام /activate",
                 show_alert=True
             )
             return False
