@@ -207,7 +207,7 @@ def button(update: Update, context: CallbackContext) -> None:
             # Rate limiting
             if is_rate_limited(user_id):
                 return query.answer(
-                    "تهدي شوي! بمعدل عالي جداً 🙏",
+                    "حاول تخفف من الضغط على الزر بشكل متكرر! 🙏",
                     show_alert=True,
                     cache_time=0
                 )
