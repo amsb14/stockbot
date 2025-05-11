@@ -1,5 +1,8 @@
+import logging
+from datetime import date
 from stockbot.database.connection import get_db_conn, put_db_conn
 from stockbot.database.queries import SUBSCRIBER_CONSUME_FREE_CREDIT, SUBSCRIBER_SELECT_USAGE
+from stockbot.database.queries import SUBSCRIBER_RESET_DAILY_USAGE
 
 def consume_free_credit(chat_id: int) -> bool:
     conn = get_db_conn()
@@ -31,3 +34,19 @@ def check_usage_quota_for_query(query, chat_id) -> bool:
             )
             return False
     return True
+
+def reset_daily_usage():
+    """
+    Reset free users' daily usage_count to zero.
+    Should be called once per day (00:00 Asia/Riyadh).
+    """
+    conn = get_db_conn()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(SUBSCRIBER_RESET_DAILY_USAGE, (date.today(),))
+            conn.commit()
+        logging.info("🔄 reset_daily_usage: freed up usage_count for all free subscribers")
+    except Exception as e:
+        logging.error(f"reset_daily_usage failed: {e}", exc_info=True)
+    finally:
+        put_db_conn(conn)

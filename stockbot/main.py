@@ -6,9 +6,24 @@ from stockbot.handlers.base import with_subscription_check, start_activation, ha
 from stockbot.handlers.errors import global_error_handler
 from stockbot.handlers import messages
 
+from apscheduler.schedulers.background import BackgroundScheduler
+from stockbot.services.subscription import reset_daily_usage
 def main() -> None:
     updater = Updater(os.getenv("BOT_TOKEN"))
     dispatcher = updater.dispatcher
+
+    # run in Asia/Riyadh at 00:00
+    scheduler = BackgroundScheduler(timezone="Asia/Riyadh")
+    scheduler.add_job(
+        reset_daily_usage,
+        trigger="cron",
+        hour=0,
+        minute=0,
+        # minute="*/2", # reset every two mintues for testing
+        id="daily_usage_reset"
+    )
+    scheduler.start()
+
 
     # Activation Conversation
     activation_conv = ConversationHandler(
@@ -48,6 +63,7 @@ def main() -> None:
     dispatcher.add_error_handler(global_error_handler)
 
     updater.start_polling()
+    # (Scheduler will keep running in background)
     updater.idle()
 
 if __name__ == '__main__':

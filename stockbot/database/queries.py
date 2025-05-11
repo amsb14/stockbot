@@ -1,7 +1,17 @@
 # All SQL queries used in the project
 
+
+# ←– the one place you set your free-tier daily limit
+FREE_DAILY_FEATURE_LIMIT = 15
+
+
 SUBSCRIBER_SELECT = """
-SELECT subscription_type, expires_at, last_usage_reset
+SELECT
+  subscription_type,
+  expires_at,
+  last_usage_reset   AS last_reset,
+  usage_count,
+  usage_limit
 FROM subscribers
 WHERE chat_id = %s
 """
@@ -15,27 +25,27 @@ SET first_name = %s,
 WHERE chat_id = %s
 """
 
-SUBSCRIBER_UPDATE_FREE = """
+SUBSCRIBER_UPDATE_FREE = f"""
 UPDATE subscribers
 SET first_name = %s,
     username = %s,
     language_code = %s,
     subscription_type = 'free',
-    usage_limit = 5,
+    usage_limit = {FREE_DAILY_FEATURE_LIMIT},
     usage_count = CASE WHEN %s THEN 0 ELSE usage_count END,
     last_usage_reset = CASE WHEN %s THEN %s ELSE last_usage_reset END,
     is_active = TRUE
 WHERE chat_id = %s
 """
 
-SUBSCRIBER_INSERT = """
+SUBSCRIBER_INSERT = f"""
 INSERT INTO subscribers (
     chat_id, first_name, username, language_code,
     subscription_type, usage_limit, usage_count,
     subscribed_at, last_usage_reset, is_active
 ) VALUES (
     %s, %s, %s, %s,
-    'free', 5, 0,
+    'free', {FREE_DAILY_FEATURE_LIMIT}, 0,
     CURRENT_TIMESTAMP, %s, TRUE
 )
 """

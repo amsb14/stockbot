@@ -8,6 +8,7 @@ from stockbot.database.queries import (
     SUBSCRIBER_UPDATE_PROFILE,
     SUBSCRIBER_UPDATE_FREE,
     SUBSCRIBER_INSERT,
+    FREE_DAILY_FEATURE_LIMIT
 )
 from stockbot.handlers.base import with_subscription_check
 from stockbot.handlers.texts import (
@@ -28,7 +29,8 @@ def start(update: Update, context: CallbackContext) -> None:
             row = cur.fetchone()
 
             if row:
-                sub_type, expires_at, last_reset = row
+                # sub_type, expires_at, last_reset = row
+                sub_type, expires_at, last_reset, usage_count, usage_limit = row
 
                 if sub_type == 'premium' and expires_at and expires_at >= today:
                     cur.execute(
@@ -37,7 +39,7 @@ def start(update: Update, context: CallbackContext) -> None:
                     )
                     conn.commit()
                     update.message.reply_text(
-                        f"👋 مرحباً مرةً أخرى! اشتراكك المميز صالح حتى {expires_at}."
+                        f"👋 أهلاً فيك مرة ثانية! اشتراكك في الباقة المدفوعة صالح حتى {expires_at}."
                     )
                     return
 
@@ -58,6 +60,7 @@ def start(update: Update, context: CallbackContext) -> None:
                 conn.commit()
 
             else:
+                usage_count, usage_limit = 0, FREE_DAILY_FEATURE_LIMIT
                 cur.execute(
                     SUBSCRIBER_INSERT,
                     (
@@ -74,9 +77,10 @@ def start(update: Update, context: CallbackContext) -> None:
         put_db_conn(conn)
 
     update.message.reply_text(
-        "👋 Welcome to StockBot!\n\n"
-        "You have been registered as a Free user.\n"
-        "You can use up to 5 advanced‐feature requests per day."
+        "👋 أهلاً بك في البوت!\n\n"
+        "انت مسجل/تم تسجيلك في الباقة المجانية.\n\n"
+        f"📊 تقدر تستخدم {usage_limit} (طلب/طلبات) من مميزات الباقة المجانية يومياً،\n"
+        f"وقمت حتى الآن باستخدام {usage_count} طلبات حتى الآن اليوم."
     )
 
 @with_subscription_check
@@ -97,30 +101,31 @@ def status(update: Update, context: CallbackContext) -> None:
             result = cur.fetchone()
 
             if not result:
-                update.message.reply_text("❌ You are not registered. Please send /start to begin.")
+
+                update.message.reply_text("❌ لم يتم تسجيلك بعد.\nيرجى إرسال الأمر /start للبدء في استخدام البوت.")
                 return
 
             subscription_type, usage_count, usage_limit, expires_at, is_active = result
 
             if not is_active:
-                update.message.reply_text("⚠️ Your subscription is inactive.\nSend /start to re-activate your access.")
+                update.message.reply_text("⚠️ اشتراكك غير مفعل حالياً.\nأرسل الأمر /start لإعادة تفعيل الوصول.")
                 return
 
             if subscription_type == 'premium':
                 exp_text = (
-                    f"🗓️ Expiration Date: {expires_at.strftime('%Y-%m-%d')}"
-                    if expires_at else "∞ No expiry set"
+                    f"🗓️ تاريخ انتهاء الاشتراك: {expires_at.strftime('%Y-%m-%d')}"
+                    if expires_at else "∞ بدون تاريخ انتهاء"
                 )
                 msg = (
-                    "⭐ You are a **Premium User**\n"
+                    "⭐ أنت مشترك في **الباقة المدفوعة**\n"
                     f"{exp_text}\n"
-                    "✅ Full access is enabled."
+                    "✅ لديك صلاحية كاملة للوصول إلى جميع المميزات."
                 )
             else:
                 msg = (
-                    "👤 You are a **Free User**\n"
-                    f"📊 Usage today: {usage_count}/{usage_limit}\n"
-                    "⚠️ Upgrade to premium for unlimited access."
+                    "👤 أنت مسجل في **الباقة المجانية**\n"
+                    f"📊 حد الاستخدام اليومي: {usage_count}/{usage_limit}\n"
+                    "⚠️ اشترك في الباقة المدفوعة للاستفادة الكاملة بدون قيود."
                 )
 
             update.message.reply_text(msg, parse_mode='Markdown')
@@ -154,7 +159,7 @@ def grant_premium(update: Update, context: CallbackContext):
     finally:
         put_db_conn(conn)
 
-    update.message.reply_text(f"✅ User {chat_id} upgraded to Premium for 30 days.")
+    update.message.reply_text(f"✅ تم ترقية المستخدم {chat_id} إلى الباقة المدفوعة لمدة 30 يومًا.")
 
 def help_command(update, context):
     update.message.reply_text(
