@@ -10,47 +10,18 @@ sys.stdout.reconfigure(line_buffering=True)
 COMPANIES = ["GOOG"]  # adjust or import from config as needed
 
 # ─── Fetch Cashflow Data from YFinance ─────────────────────────────────────────
-def get_cashflows(symbols):
-    rows = []
-    for sym in symbols:
-        try:
-            stock = yf.Ticker(sym)
-            for freq, label in [("yearly", "Annual"), ("quarterly", "Quarterly")]:
-                df = stock.get_cash_flow(freq=freq)
-                print(df, flush=True)  # Do you see a DataFrame with rows?
-                print(df.columns)  # Check which dates you get
-                print(df.index.tolist())  # See the exact metric names
-                if df is None or df.empty:
-                    continue
+def get_cashflows():
+    ticker = yf.Ticker("GOOG")
+    df_yearly    = ticker.get_cash_flow(freq="yearly")
+    df_quarterly = ticker.get_cash_flow(freq="quarterly")
 
-                for dt in df.columns:
-                    data = df[dt].to_dict()
-                    ocf     = data.get("OperatingCashFlow")             or 0
-                    fcf     = data.get("FreeCashFlow")                  or 0
-                    icf     = data.get("InvestingCashFlow")             or 0
-                    fincf   = data.get("FinancingCashFlow")             or 0
-                    capex   = data.get("CapitalExpenditure")            or 0
-                    chg_cash= data.get("ChangesInCash")                 or 0
-                    d_and_a = data.get("DepreciationAndAmortization")   or 0
-                    div_paid= data.get("CashDividendsPaid")             or 0
+    print("Yearly cash-flow DF:\n", df_yearly)
+    print("– index (metrics):", df_yearly.index.tolist())
+    print("– columns (dates):", df_yearly.columns.tolist(), "\n")
 
-                    rows.append((
-                        sym,
-                        label,
-                        dt.strftime("%Y-%m-%d"),
-                        ocf,
-                        fcf,
-                        icf,
-                        fincf,
-                        capex,
-                        chg_cash,
-                        d_and_a,
-                        div_paid,
-                        datetime.utcnow().strftime("%Y-%m-%d")
-                    ))
-        except Exception as e:
-            logging.warning(f"Error fetching cash flow for {sym}: {e}")
-    return rows
+    print("Quarterly cash-flow DF:\n", df_quarterly)
+    print("– index:", df_quarterly.index.tolist())
+    print("– columns:", df_quarterly.columns.tolist())
 
 # ─── Insert Data into PostgreSQL ────────────────────────────────────────────────
 def insert_cashflows(rows):
@@ -96,8 +67,8 @@ def refresh_cashflow_test():
     Fetch & upsert cashflow_test on demand.
     Returns the number of rows processed.
     """
-    rows = get_cashflows(COMPANIES)
-    if not rows:
-        return 0
-    insert_cashflows(rows)
-    return len(rows)
+    get_cashflows()
+    # if not rows:
+    #     return 0
+    # insert_cashflows(rows)
+    # return len(rows)
