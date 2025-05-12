@@ -3,6 +3,8 @@ from datetime import datetime
 import yfinance as yf
 from psycopg2.extras import execute_values
 from stockbot.database.connection import get_db_conn, put_db_conn
+import sys
+sys.stdout.reconfigure(line_buffering=True)
 
 # ─── Test Universe ─────────────────────────────────────────────────────────────
 COMPANIES = ["GOOG"]  # adjust or import from config as needed
@@ -15,7 +17,7 @@ def get_cashflows(symbols):
             stock = yf.Ticker(sym)
             for freq, label in [("yearly", "Annual"), ("quarterly", "Quarterly")]:
                 df = stock.get_cash_flow(freq=freq)
-                print(df)  # Do you see a DataFrame with rows?
+                print(df, flush=True)  # Do you see a DataFrame with rows?
                 print(df.columns)  # Check which dates you get
                 print(df.index.tolist())  # See the exact metric names
                 if df is None or df.empty:
