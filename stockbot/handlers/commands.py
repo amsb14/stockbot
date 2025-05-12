@@ -167,3 +167,23 @@ def help_command(update, context):
         parse_mode='Markdown',
         reply_markup=get_main_keyboard()
     )
+
+import logging
+from telegram import Update
+from telegram.ext import CallbackContext
+from stockbot.services.cashflow_etl import refresh_cashflow_test
+
+def refresh_cf_db(update: Update, context: CallbackContext) -> None:
+    """
+    /refresh_cf_db — fetch & upsert cashflow_test on demand.
+    """
+    update.message.reply_text("🔄 جاري تحديث بيانات التدفقات النقدية... الرجاء الانتظار.")
+    try:
+        count = refresh_cashflow_test()
+        if count:
+            update.message.reply_text(f"✅ تم إدراج/تحديث {count} صف في الجدول بنجاح.")
+        else:
+            update.message.reply_text("⚠️ لم تُرجع أي بيانات للتدفقات النقدية.")
+    except Exception as e:
+        logging.exception("refresh_cf_db failed")
+        update.message.reply_text(f"❌ حدث خطأ أثناء التحديث: {e}")

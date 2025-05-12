@@ -1,6 +1,6 @@
 import os
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, ConversationHandler
-from stockbot.handlers.commands import start, status, grant_premium, help_command
+from stockbot.handlers.commands import start, status, grant_premium, help_command, refresh_cf_db
 from stockbot.handlers.callbacks import button
 from stockbot.handlers.base import with_subscription_check, start_activation, handle_activation_code, cancel_activation
 from stockbot.handlers.errors import global_error_handler
@@ -42,6 +42,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("grant_premium", grant_premium))
     dispatcher.add_handler(CallbackQueryHandler(button, run_async=True))
     dispatcher.add_handler(CommandHandler("help", help_command))
+    dispatcher.add_handler(CommandHandler("refresh_cf_db", refresh_cf_db, run_async=True))
 
     # General message handler
     dispatcher.add_handler(
