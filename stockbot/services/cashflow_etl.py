@@ -12,16 +12,10 @@ COMPANIES = ["GOOG"]  # adjust or import from config as needed
 # ─── Fetch Cashflow Data from YFinance ─────────────────────────────────────────
 def get_cashflows():
     ticker = yf.Ticker("GOOG")
-    df_yearly    = ticker.get_cash_flow(freq="yearly")
-    df_quarterly = ticker.get_cash_flow(freq="quarterly")
+    info = ticker.info
 
-    print("Yearly cash-flow DF:\n", df_yearly)
-    print("– index (metrics):", df_yearly.index.tolist())
-    print("– columns (dates):", df_yearly.columns.tolist(), "\n")
+    print(info)
 
-    print("Quarterly cash-flow DF:\n", df_quarterly)
-    print("– index:", df_quarterly.index.tolist())
-    print("– columns:", df_quarterly.columns.tolist())
 
 # ─── Insert Data into PostgreSQL ────────────────────────────────────────────────
 def insert_cashflows(rows):
