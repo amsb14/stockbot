@@ -64,6 +64,7 @@ METRIC_KEYS = [
 ]
 
 # ─── Fetch Income Statements ────────────────────────────────────────────────────
+
 def get_income_statements(symbols):
     rows = []
     for sym in symbols:
@@ -91,17 +92,18 @@ def get_income_statements(symbols):
     return rows
 
 # ─── Insert Income Statements into PostgreSQL ─────────────────────────────────
+
 def insert_income_statements(rows):
-    # build column list for SQL
-    cols = [
-        'Ticker', 'Statement_Type', 'Fiscal_date'
-    ] + METRIC_KEYS + ['updated_date']
-    col_list = ", ".join(cols)
-    # build conflict target
-    conflict = "Ticker, \"Statement_Type\", Fiscal_date"
+    # build quoted column list for SQL
+    pk_cols = ['"Ticker"', '"Statement_Type"', '"Fiscal_Date"']
+    data_cols = [f'"{col}"' for col in METRIC_KEYS]
+    all_cols = [pk_cols[0], pk_cols[1], pk_cols[2]] + data_cols + ['"Updated_Date"']
+    col_list = ", ".join(all_cols)
+    # conflict target uses unquoted columns (Postgres folds to lowercase, but quoting ensures case awareness)
+    conflict = '"Ticker", "Statement_Type", "Fiscal_Date"'
     # build SET assignments excluding PKs
     assignments = ",\n        ".join(
-        f"{col} = EXCLUDED.{col}" for col in cols if col not in ['Ticker', 'Statement_Type', 'Fiscal_date']
+        f"{col} = EXCLUDED.{col}" for col in all_cols if col not in pk_cols
     )
 
     sql = f"""
@@ -117,11 +119,11 @@ def insert_income_statements(rows):
     try:
         with conn.cursor() as cur:
             execute_values(cur, sql, rows)
-        # conn.commit()  # autocommit is enabled by default in pool
     finally:
         put_db_conn(conn)
 
 # ─── Orchestration Function ─────────────────────────────────────────────────────
+
 def refresh_income_test():
     """
     Fetch & upsert income_statements on demand.
