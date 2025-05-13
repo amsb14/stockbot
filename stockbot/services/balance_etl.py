@@ -3,7 +3,7 @@ from datetime import datetime
 import yfinance as yf
 from psycopg2.extras import execute_values
 from stockbot.database.connection import get_db_conn, put_db_conn
-from stockbot.config import COMPANIES
+from stockbot.data import COMPANIES
 
 
 # ─── Selected Balance Sheet Metrics ────────────────────────────────────────────
