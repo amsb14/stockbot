@@ -94,14 +94,14 @@ def get_income_statements(symbols):
 def insert_income_statements(rows):
     # build column list for SQL
     cols = [
-        'Ticker', '"Statement_Type"', 'fiscal_date'
+        'Ticker', '"Statement_Type"', 'Fiscal_date'
     ] + METRIC_KEYS + ['updated_date']
     col_list = ", ".join(cols)
     # build conflict target
-    conflict = "Ticker, \"Statement_Type\", fiscal_date"
+    conflict = "Ticker, \"Statement_Type\", Fiscal_date"
     # build SET assignments excluding PKs
     assignments = ",\n        ".join(
-        f"{col} = EXCLUDED.{col}" for col in cols if col not in ['Ticker', '"Statement_Type"', 'fiscal_date']
+        f"{col} = EXCLUDED.{col}" for col in cols if col not in ['Ticker', '"Statement_Type"', 'Fiscal_date']
     )
 
     sql = f"""
