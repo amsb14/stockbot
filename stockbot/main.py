@@ -1,5 +1,6 @@
 import os
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, ConversationHandler
+from telegram import BotCommand, BotCommandScopeDefault, BotCommandScopeChat
 from stockbot.handlers.commands import start, status, grant_premium, help_command, refresh_cf_db, refresh_is_db, refresh_bs_db
 from stockbot.handlers.callbacks import button
 from stockbot.handlers.base import with_subscription_check, start_activation, handle_activation_code, cancel_activation
@@ -56,16 +57,34 @@ def main() -> None:
         )
     )
 
-    # Set the Top-Level Command Menu
-    updater.bot.set_my_commands([
-        ("start", "🔄 ابدأ البوت وأظهر القائمة الرئيسية"),
-        ("status", "📊 اعرض حالة اشتراكك الحالية"),
-        ("activate", "🔑 فعّل اشتراك بريميوم باستخدام الكود"),
-        ("help", "📚 تعليمات ومساعدة حول استخدام البوت"),
-        ("refresh_cf_db", "⚙️ تحديث جدول التدفقات النقدية يدويًا"),
-        ("refresh_is_db", "⚙️ تحديث جدول القوائم المالية (الدخل) يدويًا"),
-        ("refresh_bs_db", "⚙️ تحديث جدول الميزانيات (الميزانية العمومية) يدويًا"),
-    ])
+    # your admin’s user/chat ID
+    ADMIN_ID = 2105934284
+
+    # 1) Default commands for everyone
+    default_commands = [
+        BotCommand("start", "🔄 ابدأ البوت وأظهر القائمة الرئيسية"),
+        BotCommand("status", "📊 اعرض حالة اشتراكك الحالية"),
+        BotCommand("activate", "🔑 فعّل اشتراك بريميوم باستخدام الكود"),
+        BotCommand("help", "📚 تعليمات ومساعدة حول استخدام البوت"),
+    ]
+
+    updater.bot.set_my_commands(
+        default_commands,
+        scope=BotCommandScopeDefault()
+    )
+
+    # 2) Admin‐only commands
+    admin_commands = [
+        BotCommand("refresh_cf_db", "⚙️ تحديث جدول التدفقات النقدية يدويًا"),
+        BotCommand("refresh_is_db", "⚙️ تحديث جدول القوائم المالية يدويًا"),
+        BotCommand("refresh_bs_db", "⚙️ تحديث جدول الميزانيات يدويًا"),
+    ]
+
+    # 3) Combine them for the admin’s private chat
+    updater.bot.set_my_commands(
+        default_commands + admin_commands,
+        scope=BotCommandScopeChat(chat_id=ADMIN_ID)
+    )
 
     dispatcher.add_error_handler(global_error_handler)
 
