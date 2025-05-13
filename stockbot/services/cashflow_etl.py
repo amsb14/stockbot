@@ -17,9 +17,6 @@ def get_cashflows(symbols):
             stock = yf.Ticker(sym)
             for freq, label in [("yearly", "Annual"), ("quarterly", "Quarterly")]:
                 df = stock.get_cash_flow(freq=freq)
-                print(df, flush=True)  # Do you see a DataFrame with rows?
-                print(df.columns)  # Check which dates you get
-                print(df.index.tolist())  # See the exact metric names
                 if df is None or df.empty:
                     continue
 

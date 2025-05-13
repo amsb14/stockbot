@@ -15,6 +15,8 @@ from stockbot.handlers.texts import (
     LEARN_TEMPLATE
 )
 from stockbot.templates.keyboards import get_main_keyboard
+from stockbot.services.cashflow_etl import refresh_cashflow_test
+from stockbot.services.income_etl  import refresh_income_test
 
 @with_subscription_check
 def start(update: Update, context: CallbackContext) -> None:
@@ -168,15 +170,9 @@ def help_command(update, context):
         reply_markup=get_main_keyboard()
     )
 
-import logging
-from telegram import Update
-from telegram.ext import CallbackContext
-from stockbot.services.cashflow_etl import refresh_cashflow_test
+
 
 def refresh_cf_db(update: Update, context: CallbackContext) -> None:
-    """
-    /refresh_cf_db — fetch & upsert cashflow_test on demand.
-    """
     update.message.reply_text("🔄 جاري تحديث بيانات التدفقات النقدية... الرجاء الانتظار.")
     try:
         count = refresh_cashflow_test()
@@ -186,4 +182,16 @@ def refresh_cf_db(update: Update, context: CallbackContext) -> None:
             update.message.reply_text("⚠️ لم تُرجع أي بيانات للتدفقات النقدية.")
     except Exception as e:
         logging.exception("refresh_cf_db failed")
+        update.message.reply_text(f"❌ حدث خطأ أثناء التحديث: {e}")
+
+def refresh_is_db(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text("🔄 جاري تحديث القوائم المالية... الرجاء الانتظار.")
+    try:
+        count = refresh_income_test()
+        if count:
+            update.message.reply_text(f"✅ تم إدراج/تحديث {count} صف في جدول القوائم المالية بنجاح.")
+        else:
+            update.message.reply_text("⚠️ لم تُرجع أي بيانات للقوائم المالية.")
+    except Exception as e:
+        logging.exception("refresh_is_db failed")
         update.message.reply_text(f"❌ حدث خطأ أثناء التحديث: {e}")
