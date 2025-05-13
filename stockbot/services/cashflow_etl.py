@@ -53,7 +53,7 @@ def get_cashflows(symbols):
 def insert_cashflows(rows):
     sql = """
     INSERT INTO cash_flows (
-        ticker,
+        Ticker,
         "Statement_Type",
         fiscal_date,
         "OperatingCashFlow",
@@ -67,7 +67,7 @@ def insert_cashflows(rows):
         updated_date
     )
     VALUES %s
-    ON CONFLICT (ticker, "Statement_Type", fiscal_date) DO UPDATE SET
+    ON CONFLICT (Ticker, "Statement_Type", fiscal_date) DO UPDATE SET
         "OperatingCashFlow"            = EXCLUDED."OperatingCashFlow",
         "FreeCashFlow"                 = EXCLUDED."FreeCashFlow",
         "InvestingCashFlow"            = EXCLUDED."InvestingCashFlow",
