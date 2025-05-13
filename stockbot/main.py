@@ -43,7 +43,7 @@ def main() -> None:
     dispatcher.add_handler(CallbackQueryHandler(button, run_async=True))
     dispatcher.add_handler(CommandHandler("help", help_command))
     dispatcher.add_handler(CommandHandler("refresh_cf_db", refresh_cf_db, run_async=True))
-    dispatcher.add_handler(CommandHandler("refresh_is_db", refresh_in_db, run_async=True))
+    dispatcher.add_handler(CommandHandler("refresh_is_db", refresh_is_db, run_async=True))
 
     # General message handler
     dispatcher.add_handler(
