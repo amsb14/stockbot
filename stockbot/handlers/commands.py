@@ -17,6 +17,7 @@ from stockbot.handlers.texts import (
 from stockbot.templates.keyboards import get_main_keyboard
 from stockbot.services.cashflow_etl import refresh_cashflow_test
 from stockbot.services.income_etl  import refresh_income_test
+from stockbot.services.balance_etl import refresh_balance_test
 
 @with_subscription_check
 def start(update: Update, context: CallbackContext) -> None:
@@ -194,4 +195,20 @@ def refresh_is_db(update: Update, context: CallbackContext) -> None:
             update.message.reply_text("⚠️ لم تُرجع أي بيانات للقوائم المالية.")
     except Exception as e:
         logging.exception("refresh_is_db failed")
+        update.message.reply_text(f"❌ حدث خطأ أثناء التحديث: {e}")
+
+
+def refresh_bs_db(update: Update, context: CallbackContext) -> None:
+    """
+    /refresh_bs_db — fetch & upsert balance_sheets on demand.
+    """
+    update.message.reply_text("🔄 جاري تحديث القوائم المالية (الميزانيات)... الرجاء الانتظار.")
+    try:
+        count = refresh_balance_test()
+        if count:
+            update.message.reply_text(f"✅ تم إدراج/تحديث {count} صف في جدول الميزانيات بنجاح.")
+        else:
+            update.message.reply_text("⚠️ لم تُرجع أي بيانات للميزانيات.")
+    except Exception as e:
+        logging.exception("refresh_bs_db failed")
         update.message.reply_text(f"❌ حدث خطأ أثناء التحديث: {e}")

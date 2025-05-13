@@ -3,9 +3,7 @@ from datetime import datetime
 import yfinance as yf
 from psycopg2.extras import execute_values
 from stockbot.database.connection import get_db_conn, put_db_conn
-
-# ─── Test Universe ─────────────────────────────────────────────────────────────
-COMPANIES = ["GOOG", "2222.SR"]  # adjust or import from config as needed
+from stockbot.config import COMPANIES
 
 # ─── Selected Income Statement Metrics ─────────────────────────────────────────
 METRIC_KEYS = [

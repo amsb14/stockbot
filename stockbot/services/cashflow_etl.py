@@ -3,11 +3,10 @@ from datetime import datetime
 import yfinance as yf
 from psycopg2.extras import execute_values
 from stockbot.database.connection import get_db_conn, put_db_conn
+from stockbot.config import COMPANIES
 import sys
 sys.stdout.reconfigure(line_buffering=True)
 
-# ─── Test Universe ─────────────────────────────────────────────────────────────
-COMPANIES = ["GOOG", "2222.SR"]  # adjust or import from config as needed
 
 # ─── Fetch Cashflow Data from YFinance ─────────────────────────────────────────
 def get_cashflows(symbols):
