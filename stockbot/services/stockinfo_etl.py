@@ -73,11 +73,11 @@ def fetch_symbol_info(symbol):
 # ─────────── Insert/Upsert stock info into PostgreSQL ───────────
 def insert_stock_info(rows):
     """
-    Inserts or updates stock info rows into the stock_info table.
+    Inserts or updates stock info rows into the stock_data table.
     """
     conn = get_db_conn()
     sql = """
-    INSERT INTO stock_info (
+    INSERT INTO stock_data (
         symbol, exchange, industry, sector, currentPrice,
         address1, city, zip, country, phone, fax, website,
         longBusinessSummary, previousClose, open, dayLow,
