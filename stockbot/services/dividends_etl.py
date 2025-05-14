@@ -1,28 +1,30 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+import pytz
 import yfinance as yf
 from psycopg2.extras import execute_values
 
 from stockbot.database.connection import get_db_conn, put_db_conn
 from stockbot.data import COMPANIES
-from datetime import timedelta
+
 # ─── Fetch dividends for one symbol ────────────────────────────────
 def fetch_dividends_for_symbol(symbol):
     rows = []
     try:
         ticker = yf.Ticker(symbol)
         divs = ticker.dividends
-        five_years_ago = datetime.utcnow() - timedelta(days=365 * 5)
 
         if divs is None or divs.empty:
             return []
 
+        # only look back 5 years, make cutoff UTC-aware
+        five_years_ago = datetime.utcnow().replace(tzinfo=pytz.UTC) - timedelta(days=365 * 5)
+
         for dt, amount in divs.items():
-            # fiscal_year = dt.year
-            # skip anything older than 5 years
-            if dt.to_pydatetime() < five_years_ago:
+            # dt is a Timestamp with tzinfo
+            if dt < five_years_ago:
                 continue
             fiscal_year = dt.year
             rows.append((
@@ -44,11 +46,13 @@ def get_dividends(symbols):
     with ThreadPoolExecutor(max_workers=8) as executor:
         future_map = {executor.submit(fetch_dividends_for_symbol, sym): sym for sym in symbols}
         for fut in as_completed(future_map):
+            sym = future_map[fut]
             try:
-                rows = fut.result()
-                all_rows.extend(rows)
+                result = fut.result()
+                if result:
+                    all_rows.extend(result)
             except Exception as e:
-                logging.warning(f"Dividends failed for {future_map[fut]}: {e}")
+                logging.warning(f"Dividends failed for {sym}: {e}")
     return all_rows
 
 # ─── Insert into PostgreSQL with deduplication ─────────────────────

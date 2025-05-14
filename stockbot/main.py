@@ -91,6 +91,7 @@ def main() -> None:
         BotCommand("refresh_is_db", "⚙️ تحديث جدول القوائم المالية يدويًا"),
         BotCommand("refresh_bs_db", "⚙️ تحديث جدول الميزانيات يدويًا"),
         BotCommand("refresh_stock_info", "⚙️ تحديث بيانات الشركات يدويًا"),
+        BotCommand("refresh_dividends", "⚙️ تحديث بيانات التوزيعات يدويًا"),
     ]
 
     # 3) Combine them for the admin’s private chat
