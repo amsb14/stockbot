@@ -18,6 +18,7 @@ from stockbot.templates.keyboards import get_main_keyboard
 from stockbot.services.cashflow_etl import refresh_cashflow_test
 from stockbot.services.income_etl  import refresh_income_test
 from stockbot.services.balance_etl import refresh_balance_test
+from stockbot.services.stockinfo_etl import refresh_stockinfo_test
 
 @with_subscription_check
 def start(update: Update, context: CallbackContext) -> None:
@@ -211,4 +212,21 @@ def refresh_bs_db(update: Update, context: CallbackContext) -> None:
             update.message.reply_text("⚠️ لم تُرجع أي بيانات للميزانيات.")
     except Exception as e:
         logging.exception("refresh_bs_db failed")
+        update.message.reply_text(f"❌ حدث خطأ أثناء التحديث: {e}")
+
+def refresh_stockinfo_db(update: Update, context: CallbackContext) -> None:
+    """
+    /refresh_stock_info — fetch & upsert stock_info on demand.
+    """
+    update.message.reply_text("🔄 جاري تحديث بيانات الأسهم... الرجاء الانتظار.")
+    try:
+        count = refresh_stockinfo_test()
+        if count:
+            update.message.reply_text(
+                f"✅ تم إدراج/تحديث {count} سجلاً في جدول بيانات الأسهم بنجاح."
+            )
+        else:
+            update.message.reply_text("⚠️ لم تُرجع أي بيانات للتحديث.")
+    except Exception as e:
+        logging.exception("refresh_stockinfo_db failed")
         update.message.reply_text(f"❌ حدث خطأ أثناء التحديث: {e}")

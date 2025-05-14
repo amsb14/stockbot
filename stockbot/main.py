@@ -1,7 +1,7 @@
 import os
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, ConversationHandler
 from telegram import BotCommand, BotCommandScopeDefault, BotCommandScopeChat
-from stockbot.handlers.commands import start, status, grant_premium, help_command, refresh_cf_db, refresh_is_db, refresh_bs_db
+from stockbot.handlers.commands import start, status, grant_premium, help_command, refresh_cf_db, refresh_is_db, refresh_bs_db, refresh_stockinfo_db
 from stockbot.handlers.callbacks import button
 from stockbot.handlers.base import with_subscription_check, start_activation, handle_activation_code, cancel_activation
 from stockbot.handlers.errors import global_error_handler
@@ -47,6 +47,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("refresh_cf_db", refresh_cf_db, run_async=True))
     dispatcher.add_handler(CommandHandler("refresh_is_db", refresh_is_db, run_async=True))
     dispatcher.add_handler(CommandHandler("refresh_bs_db", refresh_bs_db, run_async=True))
+    dispatcher.add_handler(CommandHandler("refresh_stock_info", refresh_stockinfo_db, run_async=True))
 
     # General message handler
     dispatcher.add_handler(
@@ -78,6 +79,7 @@ def main() -> None:
         BotCommand("refresh_cf_db", "⚙️ تحديث جدول التدفقات النقدية يدويًا"),
         BotCommand("refresh_is_db", "⚙️ تحديث جدول القوائم المالية يدويًا"),
         BotCommand("refresh_bs_db", "⚙️ تحديث جدول الميزانيات يدويًا"),
+        BotCommand("refresh_stock_info", "⚙️ تحديث بيانات الشركات يدويًا"),
     ]
 
     # 3) Combine them for the admin’s private chat
