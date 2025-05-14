@@ -1,3 +1,4 @@
+# stockbot/utils/helpers.py
 import logging
 from stockbot.database.connection import get_db_conn, put_db_conn
 

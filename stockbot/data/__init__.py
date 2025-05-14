@@ -1,34 +1,21 @@
 # stockbot/data/__init__.py
-import pkgutil
-import io
-import csv
+from stockbot.database.connection import get_db_conn, put_db_conn
+from psycopg2.extras import RealDictCursor
 
-# # read the raw file bundled with this package
-# raw = pkgutil.get_data(__name__, "companies.txt").decode("utf-8").splitlines()
-#
-# # strip out blanks & comments
-# COMPANIES = [
-#     line.strip()
-#     for line in raw
-#     if line.strip() and not line.strip().startswith("#")
-# ]
+def _load_companies_from_db():
+    conn = get_db_conn()
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT symbol 
+                  FROM tickers_ar_en
+                 ORDER BY symbol
+            """)
+            rows = cur.fetchall()
+    finally:
+        put_db_conn(conn)
+    # adjust the key if your column is named differently (e.g. 'ticker')
+    return [r['symbol'] for r in rows]
 
-
-# Load the raw CSV bundled with this package
-raw = pkgutil.get_data(__name__, "companies.csv")
-if raw is None:
-    raise RuntimeError("companies.csv not found in package data")
-
-# Decode and parse CSV
-text = raw.decode("utf-8")
-reader = csv.reader(io.StringIO(text))
-
-# If your CSV has a header row, skip it:
-header = next(reader, None)
-
-# Extract the first column (Ticker) from each subsequent row
-COMPANIES = [
-    row[0].strip()
-    for row in reader
-    if row and row[0].strip() and not row[0].startswith("#")
-]
+# at import time we fetch the live list from your DB
+COMPANIES = _load_companies_from_db()
