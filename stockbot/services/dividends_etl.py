@@ -7,18 +7,23 @@ from psycopg2.extras import execute_values
 
 from stockbot.database.connection import get_db_conn, put_db_conn
 from stockbot.data import COMPANIES
-
+from datetime import timedelta
 # ─── Fetch dividends for one symbol ────────────────────────────────
 def fetch_dividends_for_symbol(symbol):
     rows = []
     try:
         ticker = yf.Ticker(symbol)
         divs = ticker.dividends
+        five_years_ago = datetime.utcnow() - timedelta(days=365 * 5)
 
         if divs is None or divs.empty:
             return []
 
         for dt, amount in divs.items():
+            # fiscal_year = dt.year
+            # skip anything older than 5 years
+            if dt.to_pydatetime() < five_years_ago:
+                continue
             fiscal_year = dt.year
             rows.append((
                 symbol,
