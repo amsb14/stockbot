@@ -19,6 +19,7 @@ from stockbot.services.cashflow_etl import refresh_cashflow_test
 from stockbot.services.income_etl  import refresh_income_test
 from stockbot.services.balance_etl import refresh_balance_test
 from stockbot.services.stockinfo_etl import refresh_stockinfo_test
+from stockbot.services.dividends_etl import refresh_dividends_test
 
 @with_subscription_check
 def start(update: Update, context: CallbackContext) -> None:
@@ -229,4 +230,22 @@ def refresh_stockinfo_db(update: Update, context: CallbackContext) -> None:
             update.message.reply_text("⚠️ لم تُرجع أي بيانات للتحديث.")
     except Exception as e:
         logging.exception("refresh_stockinfo_db failed")
+        update.message.reply_text(f"❌ حدث خطأ أثناء التحديث: {e}")
+
+
+def refresh_dividends_db(update: Update, context: CallbackContext) -> None:
+    """
+    /refresh_dividends — fetch & upsert dividends on demand.
+    """
+    update.message.reply_text("🔄 جاري تحديث توزيعات الأرباح... الرجاء الانتظار.")
+    try:
+        count = refresh_dividends_test()
+        if count:
+            update.message.reply_text(
+                f"✅ تم إدراج/تحديث {count} صفًا في جدول التوزيعات بنجاح."
+            )
+        else:
+            update.message.reply_text("⚠️ لم تُرجع أي توزيعات للتحديث.")
+    except Exception as e:
+        logging.exception("refresh_dividends_db failed")
         update.message.reply_text(f"❌ حدث خطأ أثناء التحديث: {e}")
