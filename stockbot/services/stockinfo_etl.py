@@ -1,21 +1,52 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor
-
+import pytz
+import pandas as pd
 import yfinance as yf
 from psycopg2.extras import execute_values
 
 from stockbot.database.connection import get_db_conn, put_db_conn
 from stockbot.data import COMPANIES
 
+# ─────────── Assess Dividend Continuity ───────────
+def assess_dividend_continuity(hist_dividends):
+    prev, yrs, incs = 0, 0, 0
+    for d in hist_dividends:
+        if d > 0:
+            yrs += 1
+            if d > prev:
+                incs += 1
+        prev = d
+    if yrs == len(hist_dividends) and incs > 0:
+        return "High"
+    if yrs == len(hist_dividends):
+        return "Moderate"
+    return "Low"
+
 # ─────────── Fetch stock info using yfinance ───────────
 def fetch_symbol_info(symbol):
-    """
-    Fetches key info for a single symbol via yfinance and
-    returns a tuple matching the stock_info table columns.
-    """
     try:
-        info = yf.Ticker(symbol).info
+        stock = yf.Ticker(symbol)
+        info = stock.info
+        divs = stock.dividends
+
+        # Defaults
+        last_div_value = None
+        last_div_date = None
+        continuity = "N/A"
+
+        # Dividend analysis
+        if not divs.empty:
+            five_years_ago = (datetime.utcnow() - timedelta(days=365 * 5)).replace(tzinfo=pytz.UTC)
+            divs_filtered = divs[five_years_ago:]
+            if not divs_filtered.empty and isinstance(divs_filtered.index, pd.DatetimeIndex):
+                yearly_sums = divs_filtered.groupby(pd.Grouper(freq='Y')).sum()
+                continuity = assess_dividend_continuity(yearly_sums)
+
+            last_div_value = float(divs.iloc[-1])
+            last_div_date = divs.index[-1].date()
+
     except Exception as e:
         logging.warning(f"Error fetching info for {symbol}: {e}")
         return None
@@ -51,8 +82,8 @@ def fetch_symbol_info(symbol):
         info.get('sharesOutstanding'),
         info.get('bookValue'),
         info.get('priceToBook'),
-        info.get('lastDividendValue'),
-        info.get('lastDividendDate'),
+        last_div_value,
+        str(last_div_date) if last_div_date else None,
         info.get('recommendationKey'),
         info.get('totalCash'),
         info.get('ebitda'),
@@ -66,15 +97,12 @@ def fetch_symbol_info(symbol):
         info.get('averageDailyVolume3Month'),
         info.get('fiftyTwoWeekLowChangePercent'),
         info.get('fiftyTwoWeekHighChangePercent'),
-        info.get('dividendContinuity'),
+        continuity,
         datetime.utcnow().date()
     )
 
 # ─────────── Insert/Upsert stock info into PostgreSQL ───────────
 def insert_stock_info(rows):
-    """
-    Inserts or updates stock info rows into the stock_data table.
-    """
     conn = get_db_conn()
     sql = """
     INSERT INTO stock_data (
@@ -154,31 +182,19 @@ def insert_stock_info(rows):
     finally:
         put_db_conn(conn)
 
-
 # ─────────── ETL: multithreaded fetch and load ───────────
 def etl_stock_info(symbols):
-    """
-    Fetches stock info in parallel and loads into the DB.
-    Returns the number of records upserted.
-    """
-    # Fetch in parallel
     with ThreadPoolExecutor(max_workers=5) as exe:
         results = exe.map(fetch_symbol_info, symbols)
         rows = [r for r in results if r]
-
     if not rows:
         logging.info("No stock info to insert.")
         return 0
-
-    # Insert into DB
     insert_stock_info(rows)
     return len(rows)
 
-# ─────────── Refresh function ───────────
+# ─────────── Manual refresh wrapper ───────────
 def refresh_stockinfo_test():
-    """
-    Wrapper to refresh stock_info for predefined COMPANIES.
-    """
     count = etl_stock_info(COMPANIES)
     logging.info(f"Processed {count} stock_info records.")
     return count
