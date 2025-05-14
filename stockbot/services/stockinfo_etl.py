@@ -6,9 +6,7 @@ import yfinance as yf
 from psycopg2.extras import execute_values
 
 from stockbot.database.connection import get_db_conn, put_db_conn
-# from stockbot.data import COMPANIES
-
-COMPANIES = ["IBM", "2222.SR", "MSFT", "CSX"]  # test symbols
+from stockbot.data import COMPANIES
 
 # ─────────── Fetch stock info using yfinance ───────────
 def fetch_symbol_info(symbol):
