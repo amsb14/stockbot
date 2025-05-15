@@ -20,6 +20,7 @@ from stockbot.services.income_etl  import refresh_income_test
 from stockbot.services.balance_etl import refresh_balance_test
 from stockbot.services.stockinfo_etl import refresh_stockinfo_test
 from stockbot.services.dividends_etl import refresh_dividends_test
+from stockbot.services.daily_closes_etl import refresh_daily_closes
 
 @with_subscription_check
 def start(update: Update, context: CallbackContext) -> None:
@@ -248,4 +249,21 @@ def refresh_dividends_db(update: Update, context: CallbackContext) -> None:
             update.message.reply_text("⚠️ لم تُرجع أي توزيعات للتحديث.")
     except Exception as e:
         logging.exception("refresh_dividends_db failed")
+        update.message.reply_text(f"❌ حدث خطأ أثناء التحديث: {e}")
+
+def refresh_daily_closes_db(update: Update, context: CallbackContext) -> None:
+    """
+    /refresh_daily_closes — fetch & upsert daily closes on demand.
+    """
+    update.message.reply_text("🔄 جاري تحديث أسعار الإغلاق اليومية... الرجاء الانتظار.")
+    try:
+        count = refresh_daily_closes()
+        if count:
+            update.message.reply_text(
+                f"✅ تم إدراج/تحديث {count} صفًا في جدول الإغلاق اليومي بنجاح."
+            )
+        else:
+            update.message.reply_text("⚠️ لم يُرجع أي بيانات للإغلاق اليومي للتحديث.")
+    except Exception as e:
+        logging.exception("refresh_daily_closes_db failed")
         update.message.reply_text(f"❌ حدث خطأ أثناء التحديث: {e}")

@@ -10,7 +10,8 @@ from stockbot.handlers.commands import (
     refresh_is_db,
     refresh_bs_db,
     refresh_stockinfo_db,
-    refresh_dividends_db
+    refresh_dividends_db,
+    refresh_daily_closes_db
 )
 from stockbot.handlers.callbacks import button
 from stockbot.handlers.base import with_subscription_check, start_activation, handle_activation_code, cancel_activation
@@ -33,6 +34,16 @@ def main() -> None:
         # minute="*/2", # reset every two mintues for testing
         id="daily_usage_reset"
     )
+
+    scheduler.add_job(
+        refresh_daily_closes_db,
+        trigger="cron",
+        # hour=0,
+        # minute=0,
+        minute="*/5", # reset every two mintues for testing
+        id="daily_closes_etl"
+    )
+
     scheduler.start()
 
 
@@ -59,6 +70,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("refresh_bs_db", refresh_bs_db, run_async=True))
     dispatcher.add_handler(CommandHandler("refresh_stock_info", refresh_stockinfo_db, run_async=True))
     dispatcher.add_handler(CommandHandler("refresh_dividends", refresh_dividends_db, run_async=True))
+    dispatcher.add_handler(CommandHandler("refresh_daily_closes", refresh_daily_closes_db, run_async=True))
 
     # General message handler
     dispatcher.add_handler(
@@ -92,6 +104,7 @@ def main() -> None:
         BotCommand("refresh_bs_db", "⚙️ تحديث جدول الميزانيات يدويًا"),
         BotCommand("refresh_stock_info", "⚙️ تحديث بيانات الشركات يدويًا"),
         BotCommand("refresh_dividends", "⚙️ تحديث بيانات التوزيعات يدويًا"),
+        BotCommand("refresh_daily_closes", "⚙️ تحديث بيانات الأسعار يدويًا"),
     ]
 
     # 3) Combine them for the admin’s private chat

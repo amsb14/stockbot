@@ -1,3 +1,4 @@
+
 import os
 from twelvedata import TDClient
 from stockbot.config import TWELVEDATA_API_KEY
