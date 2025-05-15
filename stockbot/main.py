@@ -1,3 +1,4 @@
+# stockbot/main.py
 import os
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler, MessageHandler, Filters, ConversationHandler
 from telegram import BotCommand, BotCommandScopeDefault, BotCommandScopeChat
@@ -17,6 +18,8 @@ from stockbot.handlers.callbacks import button
 from stockbot.handlers.base import with_subscription_check, start_activation, handle_activation_code, cancel_activation
 from stockbot.handlers.errors import global_error_handler
 from stockbot.handlers import messages
+from stockbot.services.daily_closes_etl import refresh_daily_closes
+
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from stockbot.services.subscription import reset_daily_usage
@@ -36,11 +39,11 @@ def main() -> None:
     )
 
     scheduler.add_job(
-        refresh_daily_closes_db,
+        refresh_daily_closes,
         trigger="cron",
-        # hour=0,
-        # minute=0,
-        minute="*/5", # reset every two mintues for testing
+        hour=0,
+        minute=0,
+        # minute="*/5", # reset every two mintues for testing
         id="daily_closes_etl"
     )
 

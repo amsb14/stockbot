@@ -1,9 +1,4 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Daily closes ETL: fetches end-of-day OHLCV from TwelveData for missing dates
-and upserts into the `daily_closes` table using get_db_conn/put_db_conn.
-"""
+# stockbot/services/daily_closes_etl.py
 import os
 import logging
 import time
