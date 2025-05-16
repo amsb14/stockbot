@@ -22,6 +22,7 @@ from stockbot.services.balance_etl import refresh_balance_test
 from stockbot.services.stockinfo_etl import refresh_stockinfo_test
 from stockbot.services.dividends_etl import refresh_dividends_test
 from stockbot.services.daily_closes_etl import refresh_daily_closes
+from stockbot.services.shariah_etl import update_shariah_table
 
 @with_subscription_check
 def start(update: Update, context: CallbackContext) -> None:
@@ -267,4 +268,17 @@ def refresh_daily_closes_db(update: Update, context: CallbackContext) -> None:
             update.message.reply_text("⚠️ لم يُرجع أي بيانات للإغلاق اليومي للتحديث.")
     except Exception as e:
         logging.exception("refresh_daily_closes_db failed")
+        update.message.reply_text(f"❌ حدث خطأ أثناء التحديث: {e}")
+
+
+def refresh_shariah_db(update: Update, context: CallbackContext) -> None:
+    """
+    /refresh_shariah_db — fetch & update Shariah compliance records from Argaam.
+    """
+    update.message.reply_text("🔍 جاري تحديث قائمة الأسهم المتوافقة مع الشريعة... الرجاء الانتظار.")
+    try:
+        count = update_shariah_table()
+        update.message.reply_text(f"✅ تم إدراج/تحديث {count} صفًا في جدول الأسهم الشرعية.")
+    except Exception as e:
+        logging.exception("refresh_shariah_db failed")
         update.message.reply_text(f"❌ حدث خطأ أثناء التحديث: {e}")

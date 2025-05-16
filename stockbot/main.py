@@ -12,7 +12,8 @@ from stockbot.handlers.commands import (
     refresh_bs_db,
     refresh_stockinfo_db,
     refresh_dividends_db,
-    refresh_daily_closes_db
+    refresh_daily_closes_db,
+    refresh_shariah_db
 )
 from stockbot.handlers.callbacks import button
 from stockbot.handlers.base import with_subscription_check, start_activation, handle_activation_code, cancel_activation
@@ -74,6 +75,7 @@ def main() -> None:
     dispatcher.add_handler(CommandHandler("refresh_stock_info", refresh_stockinfo_db, run_async=True))
     dispatcher.add_handler(CommandHandler("refresh_dividends", refresh_dividends_db, run_async=True))
     dispatcher.add_handler(CommandHandler("refresh_daily_closes", refresh_daily_closes_db, run_async=True))
+    dispatcher.add_handler(CommandHandler("refresh_shariah_db", refresh_shariah_db, run_async=True))
 
     # General message handler
     dispatcher.add_handler(
@@ -108,6 +110,7 @@ def main() -> None:
         BotCommand("refresh_stock_info", "⚙️ تحديث بيانات الشركات يدويًا"),
         BotCommand("refresh_dividends", "⚙️ تحديث بيانات التوزيعات يدويًا"),
         BotCommand("refresh_daily_closes", "⚙️ تحديث بيانات الأسعار يدويًا"),
+        BotCommand("refresh_shariah_db", "⚙️ تحديث البيانات الشرعية يدويًا"),
     ]
 
     # 3) Combine them for the admin’s private chat

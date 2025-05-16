@@ -19,10 +19,10 @@ def assess_dividend_continuity(hist_dividends):
                 incs += 1
         prev = d
     if yrs == len(hist_dividends) and incs > 0:
-        return "High"
+        return "عالية"
     if yrs == len(hist_dividends):
-        return "Moderate"
-    return "Low"
+        return "متوسطة"
+    return "منخفضة"
 
 # ─────────── Fetch stock info using yfinance ───────────
 def fetch_symbol_info(symbol):
